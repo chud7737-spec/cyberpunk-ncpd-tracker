@@ -1,53 +1,73 @@
 [
     {
         "id": "ma_wat_kab_05",
+        "type": "reported_crime",
+        "name_en": "Reported Crime: Protect and Serve",
+        "name_ru": null,
         "district": "Watson",
         "subdistrict": "Kabuki",
-        "type": "reported_crime",
-        "name_ru": "Заявленное преступление: Кабуки 05",
-        "name_en": "Reported Crime: Kabuki 05",
-        "resource_path": "quests/minor_activities/watson/kabuki/ma_wat_kab_05.quest",
-        "position": {
-            "x": -1189.5,
-            "y": 1422.3,
-            "z": 12.1
-        },
-        "fact_name": "ma_wat_kab_05_done",
+        "resource_path": null,
+        "position": null,
         "verified": true,
-        "source": "Game resources"
+        "sources": [
+            "CDPR Quest IDs reference (https://wiki.redmodding.org/cyberpunk-2077-modding/for-mod-creators-theory/references-lists-and-overviews/reference-quest-ids)",
+            "cp2077-tracker catalog (https://github.com/defessler/cp2077-tracker/blob/master/cp2077/cp2077_catalog.py)"
+        ]
+    },
+    {
+        "id": "ma_wat_kab_10",
+        "type": "reported_crime",
+        "name_en": "Reported Crime: Watson Kabuki",
+        "name_ru": null,
+        "district": "Watson",
+        "subdistrict": "Kabuki",
+        "resource_path": null,
+        "position": null,
+        "verified": true,
+        "sources": [
+            "cp2077-tracker catalog (https://github.com/defessler/cp2077-tracker/blob/master/cp2077/cp2077_catalog.py)"
+        ]
+    },
+    {
+        "id": "ma_wat_lch_01",
+        "type": "reported_crime",
+        "name_en": "Opposites Attract",
+        "name_ru": null,
+        "district": "Watson",
+        "subdistrict": "Little China",
+        "resource_path": null,
+        "position": null,
+        "verified": true,
+        "sources": [
+            "cp2077-tracker catalog (https://github.com/defessler/cp2077-tracker/blob/master/cp2077/cp2077_catalog.py)"
+        ]
+    },
+    {
+        "id": "ma_wat_lch_03",
+        "type": "reported_crime",
+        "name_en": "Worldly Possessions",
+        "name_ru": null,
+        "district": "Watson",
+        "subdistrict": "Little China",
+        "resource_path": null,
+        "position": null,
+        "verified": true,
+        "sources": [
+            "cp2077-tracker catalog (https://github.com/defessler/cp2077-tracker/blob/master/cp2077/cp2077_catalog.py)"
+        ]
     },
     {
         "id": "ma_wat_nid_01",
+        "type": "suspected_organized_crime",
+        "name_en": "Vice Control",
+        "name_ru": null,
         "district": "Watson",
         "subdistrict": "Northside",
-        "type": "assault_in_progress",
-        "name_ru": "Нападение: Нортсайд 01",
-        "name_en": "Assault: Northside 01",
-        "resource_path": "quests/minor_activities/watson/northside/ma_wat_nid_01.quest",
-        "position": {
-            "x": -1566.2,
-            "y": 2133.4,
-            "z": 24.5
-        },
-        "fact_name": "ma_wat_nid_01_done",
+        "resource_path": null,
+        "position": null,
         "verified": true,
-        "source": "Game resources"
-    },
-    {
-        "id": "ma_wbr_jpn_11",
-        "district": "Westbrook",
-        "subdistrict": "Japantown",
-        "type": "suspected_organized_crime",
-        "name_ru": "Организованная преступность: Джапантаун 11",
-        "name_en": "Organized Crime: Japantown 11",
-        "resource_path": "quests/minor_activities/westbrook/japantown/ma_wbr_jpn_11.quest",
-        "position": {
-            "x": -250.5,
-            "y": 642.1,
-            "z": 45.3
-        },
-        "fact_name": "ma_wbr_jpn_11_done",
-        "verified": true,
-        "source": "Game resources"
+        "sources": [
+            "cp2077-tracker catalog (https://github.com/defessler/cp2077-tracker/blob/master/cp2077/cp2077_catalog.py)"
+        ]
     }
 ]

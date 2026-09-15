@@ -5,7 +5,6 @@ local UI = {}
 UI.isOpen = false
 
 function UI.Init()
-    -- Register to CET ImGui
     registerForEvent("onDraw", function()
         if UI.isOpen then
             UI.Draw()
@@ -31,11 +30,12 @@ function UI.Draw()
     ImGui.Text("Всего: " .. tostring(Tracker.stats.total))
     ImGui.Text("Завершено: " .. tostring(Tracker.stats.completed))
     ImGui.Text("Осталось: " .. tostring(Tracker.stats.remaining))
+    ImGui.Text("Неизвестно: " .. tostring(Tracker.stats.unknown))
 
     ImGui.Separator()
     ImGui.Text("По районам:")
     for dist, data in pairs(Tracker.stats.districts) do
-        ImGui.Text(dist .. ": " .. tostring(data.completed) .. " / " .. tostring(data.total))
+        ImGui.Text(dist .. ": " .. tostring(data.completed) .. " / " .. tostring(data.total) .. " (Осталось: " .. tostring(data.remaining) .. ", Неизвестно: " .. tostring(data.unknown) .. ")")
     end
 
     ImGui.Separator()

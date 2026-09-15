@@ -26,6 +26,7 @@ Tracker.stats = {
     total = 0,
     completed = 0,
     remaining = 0,
+    unknown = 0,
     districts = {}
 }
 
@@ -47,13 +48,13 @@ function Tracker.Update()
     Tracker.stats.total = #entries
     Tracker.stats.completed = 0
     Tracker.stats.remaining = 0
+    Tracker.stats.unknown = 0
     Tracker.stats.districts = {}
 
     for _, entry in ipairs(entries) do
-        -- Initialize district stats
         local dist = entry.district or "Unknown"
         if not Tracker.stats.districts[dist] then
-            Tracker.stats.districts[dist] = {total = 0, completed = 0}
+            Tracker.stats.districts[dist] = {total = 0, completed = 0, remaining = 0, unknown = 0}
         end
         Tracker.stats.districts[dist].total = Tracker.stats.districts[dist].total + 1
 
@@ -63,8 +64,17 @@ function Tracker.Update()
             Tracker.stats.completed = Tracker.stats.completed + 1
             Tracker.stats.districts[dist].completed = Tracker.stats.districts[dist].completed + 1
             Mappins.RemoveMappin(entry.id)
+
+        elseif state == QuestState.STATE_UNKNOWN then
+            Tracker.stats.unknown = Tracker.stats.unknown + 1
+            Tracker.stats.districts[dist].unknown = Tracker.stats.districts[dist].unknown + 1
+            -- We DO NOT show markers for UNKNOWN to be safe.
+            Mappins.RemoveMappin(entry.id)
+
         else
+            -- NOT_COMPLETED
             Tracker.stats.remaining = Tracker.stats.remaining + 1
+            Tracker.stats.districts[dist].remaining = Tracker.stats.districts[dist].remaining + 1
 
             -- Apply filters
             local shouldShow = true

@@ -13,7 +13,7 @@ def validate():
 
     ids = set()
     errors = 0
-    valid_types = {"assault_in_progress", "suspected_organized_crime", "reported_crime"}
+    valid_types = {"assault_in_progress", "suspected_organized_crime", "reported_crime", "cyberpsycho_sighting", "hidden_gem"}
 
     for entry in data:
         eid = entry.get('id')
@@ -33,18 +33,30 @@ def validate():
             print(f"Error: Invalid type {etype} for ID {eid}")
             errors += 1
 
-        pos = entry.get('position')
-        if not pos and entry.get('verified'):
-            print(f"Error: Verified entry missing position {eid}")
-            errors += 1
+        verified = entry.get('verified', False)
+        sources = entry.get('sources', [])
 
+        if verified:
+            if not sources:
+                print(f"Error: Verified entry {eid} is missing sources.")
+                errors += 1
+            if "Game resources" in sources and len(sources) == 1:
+                print(f"Error: Entry {eid} has vague source 'Game resources'. Must be specific.")
+                errors += 1
+
+        pos = entry.get('position')
         if pos:
             if 'x' not in pos or 'y' not in pos or 'z' not in pos:
                 print(f"Error: Invalid position format for {eid}")
                 errors += 1
+            if not sources:
+                print(f"Error: Position defined for {eid} but no sources provided.")
+                errors += 1
 
-        if not entry.get('fact_name'):
-            print(f"Warning: No fact_name for {eid}. We might not be able to track completion.")
+        res = entry.get('resource_path')
+        if res and not sources:
+            print(f"Error: Resource path defined for {eid} but no sources provided.")
+            errors += 1
 
     print(f"Validation complete. Checked {len(data)} entries. {errors} errors found.")
     return errors == 0

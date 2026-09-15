@@ -1,7 +1,6 @@
 local Logger = require("modules/logger")
 local Mappins = {}
 
--- A table storing entry_id -> mappin_id
 Mappins.registered = {}
 local mappinSystem = nil
 
@@ -20,7 +19,6 @@ function Mappins.EnsureMappin(entry)
         if not mappinSystem then return end
     end
 
-    -- If already registered, do nothing
     if Mappins.registered[entry.id] then return end
 
     if not entry.position or entry.position.x == nil then
@@ -28,21 +26,15 @@ function Mappins.EnsureMappin(entry)
         return
     end
 
+    -- NEEDS_IN_GAME_TEST: Verify coordinate scaling and exactly how MappinData is constructed in 2.31.
     local pos = Vector4.new(entry.position.x, entry.position.y, entry.position.z, 1.0)
 
-    -- We construct a MappinData object.
-    -- The exact struct fields might vary in 2.x, this is an approximation for CET.
-    -- In actual CET for 2.x, we usually instantiate a PointOfInterestMappinData or generic gamemappinsMappinData.
-    -- We use a safe default: Question mark (Undiscovered) or custom pin.
-
-    local mappinData = gamemappinsMappinData.new()
-    mappinData.mappinType = TweakDBID.new("Mappins.PointOfInterest_icon")
-    mappinData.variant = gamedataMappinVariant.UndiscoveredVariant
-    mappinData.visibleThroughWalls = false
-
-    -- Needs IN-GAME TEST: The signature of RegisterMappin
-    -- Usually: RegisterMappin(mappinData, position) -> NewMappinID
     local success, mappinId = pcall(function()
+        local mappinData = gamemappinsMappinData.new()
+        mappinData.mappinType = TweakDBID.new("Mappins.PointOfInterest_icon")
+        mappinData.variant = gamedataMappinVariant.UndiscoveredVariant
+        mappinData.visibleThroughWalls = false
+
         return mappinSystem:RegisterMappin(mappinData, pos)
     end)
 
@@ -50,7 +42,7 @@ function Mappins.EnsureMappin(entry)
         Mappins.registered[entry.id] = mappinId
         Logger.Debug("Marker created: " .. entry.id)
     else
-        Logger.Error("Failed to register mappin for " .. entry.id)
+        Logger.Error("Failed to register mappin for " .. entry.id .. ". Ensure Game.GetMappinSystem API is correctly called.")
     end
 end
 
@@ -69,7 +61,7 @@ end
 
 function Mappins.RemoveAll()
     Logger.Info("Removing all custom mappins...")
-    for id, mappinId in pairs(Mappins.registered) do
+    for id, _ in pairs(Mappins.registered) do
         Mappins.RemoveMappin(id)
     end
     Mappins.registered = {}

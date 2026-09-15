@@ -2,73 +2,45 @@ import json
 import os
 import argparse
 
-# Dummy extractor for now. In a real environment with WolvenKit,
-# this would parse the dumped JSON resources from the game.
+def parse_wolvenkit_dump(filepath):
+    """
+    Real parser stub. Given a WolvenKit JSON dump (e.g. from minor_activities.quest),
+    it will extract node data, find Vector3/Vector4 positions, and map them to IDs.
+    Since we don't have a real dump here, we just read the file and fail if missing.
+    """
+    if not os.path.exists(filepath):
+        print(f"Error: Input file {filepath} not found.")
+        return []
+
+    extracted_data = []
+
+    with open(filepath, 'r', encoding='utf-8') as f:
+        try:
+            dump = json.load(f)
+            # This is where actual parsing of WolvenKit node structure would happen.
+            # E.g., searching for 'worldInstancedDestructibleNode' or 'questGraph'
+            # and extracting specific positions.
+            print("Parsing actual WolvenKit structure...")
+        except json.JSONDecodeError:
+            print(f"Error: {filepath} is not valid JSON.")
+
+    return extracted_data
 
 def main():
-    print("NCPD Coordinate Extractor Tool")
-    print("This tool requires dumped game resources (using WolvenKit).")
-    print("Since we are running in an isolated environment, we will generate a sample database.")
+    parser = argparse.ArgumentParser(description="NCPD Extraction Tool")
+    parser.add_argument("--input", required=True, help="Path to WolvenKit JSON dump")
+    parser.add_argument("--output", default="data/ncpd.generated.json", help="Output JSON path")
+    args = parser.parse_args()
 
-    # We create a verified sample based on known Cyberpunk 2077 NCPD data structure
-    sample_data = [
-        {
-            "id": "ma_wat_kab_05",
-            "district": "Watson",
-            "subdistrict": "Kabuki",
-            "type": "reported_crime",
-            "name_ru": "Заявленное преступление: Кабуки 05",
-            "name_en": "Reported Crime: Kabuki 05",
-            "resource_path": "quests/minor_activities/watson/kabuki/ma_wat_kab_05.quest",
-            "position": {
-                "x": -1189.5,
-                "y": 1422.3,
-                "z": 12.1
-            },
-            "fact_name": "ma_wat_kab_05_done",
-            "verified": True,
-            "source": "Game resources"
-        },
-        {
-            "id": "ma_wat_nid_01",
-            "district": "Watson",
-            "subdistrict": "Northside",
-            "type": "assault_in_progress",
-            "name_ru": "Нападение: Нортсайд 01",
-            "name_en": "Assault: Northside 01",
-            "resource_path": "quests/minor_activities/watson/northside/ma_wat_nid_01.quest",
-            "position": {
-                "x": -1566.2,
-                "y": 2133.4,
-                "z": 24.5
-            },
-            "fact_name": "ma_wat_nid_01_done",
-            "verified": True,
-            "source": "Game resources"
-        },
-        {
-            "id": "ma_wbr_jpn_11",
-            "district": "Westbrook",
-            "subdistrict": "Japantown",
-            "type": "suspected_organized_crime",
-            "name_ru": "Организованная преступность: Джапантаун 11",
-            "name_en": "Organized Crime: Japantown 11",
-            "resource_path": "quests/minor_activities/westbrook/japantown/ma_wbr_jpn_11.quest",
-            "position": {
-                "x": -250.5,
-                "y": 642.1,
-                "z": 45.3
-            },
-            "fact_name": "ma_wbr_jpn_11_done",
-            "verified": True,
-            "source": "Game resources"
-        }
-    ]
+    print(f"Extracting data from {args.input}...")
+    data = parse_wolvenkit_dump(args.input)
 
-    with open('data/ncpd.generated.json', 'w', encoding='utf-8') as f:
-        json.dump(sample_data, f, indent=4, ensure_ascii=False)
-
-    print(f"Generated data/ncpd.generated.json with {len(sample_data)} entries.")
+    if data:
+        with open(args.output, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        print(f"Successfully generated {args.output} with {len(data)} entries.")
+    else:
+        print("No data extracted. Ensure the input file is a valid WolvenKit JSON dump of minor activities.")
 
 if __name__ == "__main__":
     main()

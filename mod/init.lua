@@ -26,13 +26,10 @@ registerForEvent("onUpdate", function(delta)
     end
 end)
 
--- Called when a save is loaded or main menu is loaded
+-- Called when a save is loaded
 registerForEvent("onSessionStart", function()
     Logger.Info("Session started (save loaded).")
-    isGameLoaded = true
-
-    -- Delay initialization slightly to let engine settle
-    CName.add("DelayNCPDTracker")
+    -- We set isGameLoaded later in OnGameAttached to ensure systems are ready
 end)
 
 registerForEvent("onSessionEnd", function()
@@ -46,6 +43,7 @@ Observe('PlayerPuppet', 'OnGameAttached', function(self)
     Logger.Info("Player attached, initializing systems...")
     QuestState.Init()
     Mappins.Init()
+    isGameLoaded = true
     Tracker.Update()
 end)
 

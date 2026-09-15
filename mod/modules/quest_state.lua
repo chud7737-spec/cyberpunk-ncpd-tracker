@@ -5,38 +5,56 @@ QuestState.STATE_COMPLETED = "COMPLETED"
 QuestState.STATE_NOT_COMPLETED = "NOT_COMPLETED"
 QuestState.STATE_UNKNOWN = "UNKNOWN"
 
--- Reference to the quest system, populated when a save is loaded
-local qs = nil
+local journalManager = nil
 
 function QuestState.Init()
-    qs = Game.GetQuestsSystem()
-    if qs then
-        Logger.Debug("QuestSystem initialized.")
+    journalManager = Game.GetJournalManager()
+    if journalManager then
+        Logger.Debug("JournalManager initialized.")
     else
-        Logger.Error("Failed to get QuestSystem. Is player in game?")
+        Logger.Error("Failed to get JournalManager.")
     end
 end
 
 function QuestState.GetState(entry)
-    if not qs then
-        qs = Game.GetQuestsSystem()
+    if not journalManager then
+        journalManager = Game.GetJournalManager()
     end
 
-    if not qs then return QuestState.STATE_UNKNOWN end
+    if not journalManager then return QuestState.STATE_UNKNOWN end
 
-    local factName = entry.fact_name
-    if not factName or factName == "" then
-        Logger.Debug("No fact_name for " .. entry.id .. ", returning UNKNOWN")
+    -- In Cyberpunk, minor activities are tracked in the journal.
+    -- We can query the state of the specific entry.
+    -- However, the exact Journal Entry path requires IN-GAME extraction for each ID.
+    -- For now, if we don't have the exact path or it's unverified, return UNKNOWN to be safe.
+
+    local journalPath = entry.journal_path
+    if not journalPath then
+        Logger.Debug("No journal_path for " .. entry.id .. ", returning UNKNOWN")
         return QuestState.STATE_UNKNOWN
     end
 
-    local factVal = qs:GetFact(factName)
-    if factVal and factVal > 0 then
-        -- We assume fact > 0 means the activity was completed
-        return QuestState.STATE_COMPLETED
+    -- NEEDS_IN_GAME_TEST: The exact API for fetching Journal Entry state from path string.
+    -- Usually: journalManager:GetEntryState(journalManager:GetEntryByString(journalPath, "gameJournalEntry"))
+    -- Since we don't want to fake it or crash, we return UNKNOWN if we can't safely resolve it.
+
+    local success, state = pcall(function()
+        local jEntry = journalManager:GetEntryByString(journalPath, "gameJournalEntry")
+        if not jEntry then return nil end
+        return journalManager:GetEntryState(jEntry)
+    end)
+
+    if success and state ~= nil then
+        -- state enum in CET usually matches gameJournalEntryState (e.g. Succeeded = 3)
+        -- NEEDS_IN_GAME_TEST for exact enum match
+        if tostring(state) == "Succeeded" or state == 3 then
+            return QuestState.STATE_COMPLETED
+        else
+            return QuestState.STATE_NOT_COMPLETED
+        end
     end
 
-    return QuestState.STATE_NOT_COMPLETED
+    return QuestState.STATE_UNKNOWN
 end
 
 return QuestState
