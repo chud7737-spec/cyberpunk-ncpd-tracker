@@ -30,7 +30,7 @@
     },
     {
         "id": "ma_wat_lch_01",
-        "type": "reported_crime",
+        "type": "suspected_organized_crime",
         "name_en": "Opposites Attract",
         "name_ru": null,
         "district": "Watson",

@@ -4,7 +4,7 @@ local Mappins = require("modules/mappins")
 local Tracker = require("modules/tracker")
 local UI = require("modules/ui")
 
-local isGameLoaded = false
+local sessionState = "IN_MENU"
 local updateTimer = 0
 
 registerForEvent("onInit", function()
@@ -13,40 +13,48 @@ registerForEvent("onInit", function()
 
     Tracker.Init()
     UI.Init()
+
+    -- Safe observer registration
+    Observe('PlayerPuppet', 'OnGameAttached', function(self)
+        if sessionState ~= "IN_GAME" then
+            Logger.Info("Player attached, initializing game systems...")
+            QuestState.Init()
+            Mappins.Init()
+            sessionState = "IN_GAME"
+            Tracker.Update()
+        end
+    end)
 end)
 
 registerForEvent("onUpdate", function(delta)
-    if not isGameLoaded then return end
+    local player = Game.GetPlayer()
 
-    updateTimer = updateTimer + delta
-    -- Poll every 5 seconds for completion state changes
-    if updateTimer >= 5.0 then
-        updateTimer = 0
+    if player and sessionState == "IN_MENU" then
+        -- Failsafe if OnGameAttached didn't fire (e.g. reload script)
+        Logger.Info("Player found via update loop, initializing game systems...")
+        QuestState.Init()
+        Mappins.Init()
+        sessionState = "IN_GAME"
         Tracker.Update()
+    elseif not player and sessionState == "IN_GAME" then
+        Logger.Info("Player not found, returning to menu state...")
+        sessionState = "IN_MENU"
+        Tracker.OnUninit()
+    end
+
+    if sessionState == "IN_GAME" then
+        updateTimer = updateTimer + delta
+        if updateTimer >= 5.0 then
+            updateTimer = 0
+            Tracker.Update()
+        end
     end
 end)
 
--- Called when a save is loaded
-registerForEvent("onSessionStart", function()
-    Logger.Info("Session started (save loaded).")
-    -- We set isGameLoaded later in OnGameAttached to ensure systems are ready
-end)
-
-registerForEvent("onSessionEnd", function()
-    Logger.Info("Session ended.")
-    isGameLoaded = false
+registerForEvent("onShutdown", function()
     Tracker.OnUninit()
 end)
 
--- Workaround to initialize when game fully loads
-Observe('PlayerPuppet', 'OnGameAttached', function(self)
-    Logger.Info("Player attached, initializing systems...")
-    QuestState.Init()
-    Mappins.Init()
-    isGameLoaded = true
-    Tracker.Update()
-end)
-
 return {
-    description = "NCPD Tracker - displays uncompleted NCPD activities on map"
+    description = "NCPD Tracker - diagnostic prototype"
 }

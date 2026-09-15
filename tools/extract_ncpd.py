@@ -2,12 +2,11 @@ import json
 import os
 import argparse
 
+# DEVELOPMENT STUB: NOT FULLY IMPLEMENTED
+# This tool currently does not parse actual WolvenKit JSON dumps.
+# It serves as a placeholder for a future implementation.
+
 def parse_wolvenkit_dump(filepath):
-    """
-    Real parser stub. Given a WolvenKit JSON dump (e.g. from minor_activities.quest),
-    it will extract node data, find Vector3/Vector4 positions, and map them to IDs.
-    Since we don't have a real dump here, we just read the file and fail if missing.
-    """
     if not os.path.exists(filepath):
         print(f"Error: Input file {filepath} not found.")
         return []
@@ -17,10 +16,7 @@ def parse_wolvenkit_dump(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
         try:
             dump = json.load(f)
-            # This is where actual parsing of WolvenKit node structure would happen.
-            # E.g., searching for 'worldInstancedDestructibleNode' or 'questGraph'
-            # and extracting specific positions.
-            print("Parsing actual WolvenKit structure...")
+            print("Stub: parsing WolvenKit structure is not yet implemented.")
         except json.JSONDecodeError:
             print(f"Error: {filepath} is not valid JSON.")
 

@@ -31,3 +31,29 @@
 **STATUS:** VERIFIED
 **SOURCE:** CDPR Modding Community Quest IDs Reference, cp2077-tracker
 **EVIDENCE:** IDs like `ma_wat_kab_05` represent actual quests (e.g., "Reported Crime: Protect and Serve"). Classification must be strict and based on reference documents.
+
+## POI Hash Mapping & Mappin Saved State
+**STATUS:** NEEDS_IN_GAME_TEST
+**SOURCE:** REDengine Native API (`gameMappinSystem`, `gameJournalManager`)
+**EVIDENCE:**
+There is a potential read-only path to check completion without hardcoded coordinates:
+1. Get Journal Entry (e.g. `JournalManager.GetEntryByString`)
+2. Get Quest Hash (`JournalManager.GetEntryHash`)
+3. `JournalManager.GetPointOfInterestMappinHashFromQuestHash(questHash)` -> `poiHash`
+4. `MappinSystem.GetPointOfInterestMappinSavedState(poiHash, out phase, out variant, out active)`
+If this chain works, we can determine state and potentially even runtime position (`GetQuestMappinPosition`) without `ncpd.json` positions.
+
+## Mappin Phases
+**STATUS:** NEEDS_IN_GAME_TEST
+**SOURCE:** `gamedataMappinPhase` Enum
+**EVIDENCE:** The enum contains `CompletedPhase`, `DefaultPhase`, `DiscoveredPhase`, `UndiscoveredPhase`. We need in-game testing to verify if `CompletedPhase` reliably maps to actual completion for NCPD minor activities.
+
+## Custom Marker Creation & mappinData.active
+**STATUS:** NEEDS_IN_GAME_TEST
+**SOURCE:** CET community examples
+**EVIDENCE:** When constructing `gamemappinsMappinData.new()`, setting `mappinData.active = true` is often required for the marker to actually render. `Mappins.PointOfInterest_icon` requires verification as a valid `TweakDBID`.
+
+## CET Lifecycle
+**STATUS:** VERIFIED
+**SOURCE:** CET Documentation
+**EVIDENCE:** `onSessionStart` and `onSessionEnd` are not valid CET events. The correct way to detect in-game state is polling `Game.GetPlayer()` in `onUpdate`, combined with events like `onInit`, `onDraw`, etc.

@@ -23,20 +23,10 @@ function QuestState.GetState(entry)
 
     if not journalManager then return QuestState.STATE_UNKNOWN end
 
-    -- In Cyberpunk, minor activities are tracked in the journal.
-    -- We can query the state of the specific entry.
-    -- However, the exact Journal Entry path requires IN-GAME extraction for each ID.
-    -- For now, if we don't have the exact path or it's unverified, return UNKNOWN to be safe.
-
     local journalPath = entry.journal_path
     if not journalPath then
-        Logger.Debug("No journal_path for " .. entry.id .. ", returning UNKNOWN")
         return QuestState.STATE_UNKNOWN
     end
-
-    -- NEEDS_IN_GAME_TEST: The exact API for fetching Journal Entry state from path string.
-    -- Usually: journalManager:GetEntryState(journalManager:GetEntryByString(journalPath, "gameJournalEntry"))
-    -- Since we don't want to fake it or crash, we return UNKNOWN if we can't safely resolve it.
 
     local success, state = pcall(function()
         local jEntry = journalManager:GetEntryByString(journalPath, "gameJournalEntry")
@@ -45,8 +35,6 @@ function QuestState.GetState(entry)
     end)
 
     if success and state ~= nil then
-        -- state enum in CET usually matches gameJournalEntryState (e.g. Succeeded = 3)
-        -- NEEDS_IN_GAME_TEST for exact enum match
         if tostring(state) == "Succeeded" or state == 3 then
             return QuestState.STATE_COMPLETED
         else
@@ -55,6 +43,54 @@ function QuestState.GetState(entry)
     end
 
     return QuestState.STATE_UNKNOWN
+end
+
+-- Probe function for diagnostic purposes
+function QuestState.Probe(id, journalPath)
+    Logger.Info("--- PROBING " .. tostring(id) .. " ---")
+    if not journalManager then
+        journalManager = Game.GetJournalManager()
+        if not journalManager then
+            Logger.Error("No JournalManager available for probe.")
+            return
+        end
+    end
+
+    Logger.Info("Journal Path: " .. tostring(journalPath))
+
+    if not journalPath then
+        Logger.Info("Result: Cannot probe without journalPath.")
+        return
+    end
+
+    local jEntry = nil
+    pcall(function() jEntry = journalManager:GetEntryByString(journalPath, "gameJournalEntry") end)
+
+    if not jEntry then
+        Logger.Info("Journal Entry: NOT FOUND")
+        return
+    end
+    Logger.Info("Journal Entry: FOUND")
+
+    local jHash = nil
+    pcall(function() jHash = journalManager:GetEntryHash(jEntry) end)
+    Logger.Info("Journal Hash: " .. tostring(jHash))
+
+    local jState = nil
+    pcall(function() jState = journalManager:GetEntryState(jEntry) end)
+    Logger.Info("Journal State: " .. tostring(jState))
+
+    local mappinSystem = Game.GetMappinSystem()
+    if mappinSystem and jHash then
+        local poiHash = nil
+        pcall(function() poiHash = journalManager:GetPointOfInterestMappinHashFromQuestHash(jHash) end)
+        Logger.Info("POI Hash: " .. tostring(poiHash))
+
+        -- Needs in-game test to check if GetPointOfInterestMappinSavedState works this way
+        Logger.Info("Mappin Saved State probe requires exact out parameters which might not bind in CET Lua easily. Skipping deep state probe.")
+    else
+        Logger.Info("MappinSystem not available for POI hash check.")
+    end
 end
 
 return QuestState

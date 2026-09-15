@@ -1,5 +1,7 @@
 local Logger = require("modules/logger")
 local Tracker = require("modules/tracker")
+local QuestState = require("modules/quest_state")
+local Mappins = require("modules/mappins")
 
 local UI = {}
 UI.isOpen = false
@@ -33,12 +35,6 @@ function UI.Draw()
     ImGui.Text("Неизвестно: " .. tostring(Tracker.stats.unknown))
 
     ImGui.Separator()
-    ImGui.Text("По районам:")
-    for dist, data in pairs(Tracker.stats.districts) do
-        ImGui.Text(dist .. ": " .. tostring(data.completed) .. " / " .. tostring(data.total) .. " (Осталось: " .. tostring(data.remaining) .. ", Неизвестно: " .. tostring(data.unknown) .. ")")
-    end
-
-    ImGui.Separator()
     ImGui.Text("Показать:")
 
     Tracker.filters.assault = ImGui.Checkbox("Нападения", Tracker.filters.assault)
@@ -46,13 +42,21 @@ function UI.Draw()
     Tracker.filters.reported = ImGui.Checkbox("Заявленные преступления", Tracker.filters.reported)
 
     ImGui.Separator()
-    ImGui.Text("Районы:")
-    Tracker.filters.district_Watson = ImGui.Checkbox("Уотсон", Tracker.filters.district_Watson)
-    Tracker.filters.district_Westbrook = ImGui.Checkbox("Уэстбрук", Tracker.filters.district_Westbrook)
-
-    ImGui.Separator()
     if ImGui.Button("Обновить метки") then
         Tracker.Update()
+    end
+
+    ImGui.Separator()
+    ImGui.Text("NCPD DEBUG")
+    if ImGui.Button("Тестовая метка возле игрока") then
+        Mappins.CreateTestMappin()
+    end
+    if ImGui.Button("Удалить тестовую метку") then
+        Mappins.RemoveTestMappin()
+    end
+    if ImGui.Button("Проверить Journal (ma_wat_kab_05)") then
+        -- This requires exact journal path to work. Passing nil to show the probe failing gracefully.
+        QuestState.Probe("ma_wat_kab_05", nil)
     end
 
     ImGui.End()

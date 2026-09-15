@@ -41,3 +41,27 @@
 **WHY WRONG:** This does not create a delay in CET Lua; it merely registers a string as a CName.
 **NEW BEHAVIOR:** Use real lifecycle events or CET timers.
 **VERIFICATION SOURCE:** CET API Documentation.
+
+## 8. Unsupported CET Lifecycle Events
+**OLD BEHAVIOR:** `init.lua` used `onSessionStart` and `onSessionEnd`.
+**WHY WRONG:** These are not standard CET events.
+**NEW BEHAVIOR:** Use `onUpdate` to check `Game.GetPlayer()` presence, or native events.
+**VERIFICATION SOURCE:** CET documentation.
+
+## 9. Wrong Classification in Dataset
+**OLD BEHAVIOR:** `ma_wat_lch_01` was labeled `reported_crime`.
+**WHY WRONG:** CDPR Quest IDs specify it is `Suspected Organized Crime Activity`.
+**NEW BEHAVIOR:** Corrected to `suspected_organized_crime`.
+**VERIFICATION SOURCE:** CDPR Quest IDs Reference.
+
+## 10. Extractor is Still a Stub
+**OLD BEHAVIOR:** `tools/extract_ncpd.py` was presented as a working tool but was a stub.
+**WHY WRONG:** Misleading documentation.
+**NEW BEHAVIOR:** Explicitly marked as a stub/WIP in comments and documentation.
+**VERIFICATION SOURCE:** Code review.
+
+## 11. Unverified Marker API
+**OLD BEHAVIOR:** Claimed `RegisterMappin` usage was correct.
+**WHY WRONG:** Exact object structure (`mappinData.active`, etc.) needs in-game verification.
+**NEW BEHAVIOR:** Add debug tools to test generic marker spawning first.
+**VERIFICATION SOURCE:** CET mapping examples.

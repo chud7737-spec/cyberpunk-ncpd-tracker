@@ -3,6 +3,7 @@ local Mappins = {}
 
 Mappins.registered = {}
 local mappinSystem = nil
+local testMappinId = nil
 
 function Mappins.Init()
     mappinSystem = Game.GetMappinSystem()
@@ -22,11 +23,9 @@ function Mappins.EnsureMappin(entry)
     if Mappins.registered[entry.id] then return end
 
     if not entry.position or entry.position.x == nil then
-        Logger.Debug("Cannot create marker for " .. entry.id .. ", no coordinates.")
         return
     end
 
-    -- NEEDS_IN_GAME_TEST: Verify coordinate scaling and exactly how MappinData is constructed in 2.31.
     local pos = Vector4.new(entry.position.x, entry.position.y, entry.position.z, 1.0)
 
     local success, mappinId = pcall(function()
@@ -34,15 +33,13 @@ function Mappins.EnsureMappin(entry)
         mappinData.mappinType = TweakDBID.new("Mappins.PointOfInterest_icon")
         mappinData.variant = gamedataMappinVariant.UndiscoveredVariant
         mappinData.visibleThroughWalls = false
+        mappinData.active = true
 
         return mappinSystem:RegisterMappin(mappinData, pos)
     end)
 
     if success and mappinId then
         Mappins.registered[entry.id] = mappinId
-        Logger.Debug("Marker created: " .. entry.id)
-    else
-        Logger.Error("Failed to register mappin for " .. entry.id .. ". Ensure Game.GetMappinSystem API is correctly called.")
     end
 end
 
@@ -55,7 +52,6 @@ function Mappins.RemoveMappin(entryId)
             mappinSystem:UnregisterMappin(mappinId)
         end)
         Mappins.registered[entryId] = nil
-        Logger.Debug("Marker removed: " .. entryId)
     end
 end
 
@@ -65,6 +61,46 @@ function Mappins.RemoveAll()
         Mappins.RemoveMappin(id)
     end
     Mappins.registered = {}
+    Mappins.RemoveTestMappin()
+end
+
+function Mappins.CreateTestMappin()
+    if not mappinSystem then mappinSystem = Game.GetMappinSystem() end
+    if not mappinSystem then return end
+
+    local player = Game.GetPlayer()
+    if not player then return end
+
+    local pos = player:GetWorldPosition()
+    -- Offset slightly so it's visible
+    pos.x = pos.x + 2.0
+
+    local success, mappinId = pcall(function()
+        local mappinData = gamemappinsMappinData.new()
+        mappinData.mappinType = TweakDBID.new("Mappins.PointOfInterest_icon")
+        mappinData.variant = gamedataMappinVariant.UndiscoveredVariant
+        mappinData.visibleThroughWalls = true
+        mappinData.active = true
+
+        return mappinSystem:RegisterMappin(mappinData, pos)
+    end)
+
+    if success and mappinId then
+        testMappinId = mappinId
+        Logger.Info("Test marker created near player.")
+    else
+        Logger.Error("Failed to create test marker.")
+    end
+end
+
+function Mappins.RemoveTestMappin()
+    if testMappinId and mappinSystem then
+        pcall(function()
+            mappinSystem:UnregisterMappin(testMappinId)
+        end)
+        testMappinId = nil
+        Logger.Info("Test marker removed.")
+    end
 end
 
 return Mappins
