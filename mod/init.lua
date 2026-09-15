@@ -4,55 +4,76 @@ local Mappins = require("modules/mappins")
 local Tracker = require("modules/tracker")
 local UI = require("modules/ui")
 
-local sessionState = "IN_MENU"
-local updateTimer = 0
+local currentPlayer = nil
+local updateTimer = 0.0
+
+local function EnterGame(player)
+    if not player then
+        return
+    end
+
+    if currentPlayer == player then
+        return
+    end
+
+    if currentPlayer ~= nil then
+        Logger.Info("Player instance changed. Cleaning previous session...")
+        Tracker.OnUninit()
+    end
+
+    currentPlayer = player
+    Logger.Info("Entering game session...")
+
+    QuestState.Init()
+    Mappins.Init()
+
+    Tracker.Update()
+end
+
+local function LeaveGame()
+    if currentPlayer == nil then
+        return
+    end
+
+    Logger.Info("Leaving game session...")
+    Tracker.OnUninit()
+
+    currentPlayer = nil
+    updateTimer = 0.0
+end
 
 registerForEvent("onInit", function()
     Logger.Init()
-    Logger.Info("Mod loaded.")
+    Logger.Info("NCPD Tracker diagnostic prototype loaded.")
 
     Tracker.Init()
     UI.Init()
 
-    -- Safe observer registration
-    Observe('PlayerPuppet', 'OnGameAttached', function(self)
-        if sessionState ~= "IN_GAME" then
-            Logger.Info("Player attached, initializing game systems...")
-            QuestState.Init()
-            Mappins.Init()
-            sessionState = "IN_GAME"
-            Tracker.Update()
-        end
+    Observe("PlayerPuppet", "OnGameAttached", function(self)
+        EnterGame(self)
     end)
 end)
 
 registerForEvent("onUpdate", function(delta)
     local player = Game.GetPlayer()
 
-    if player and sessionState == "IN_MENU" then
-        -- Failsafe if OnGameAttached didn't fire (e.g. reload script)
-        Logger.Info("Player found via update loop, initializing game systems...")
-        QuestState.Init()
-        Mappins.Init()
-        sessionState = "IN_GAME"
-        Tracker.Update()
-    elseif not player and sessionState == "IN_GAME" then
-        Logger.Info("Player not found, returning to menu state...")
-        sessionState = "IN_MENU"
-        Tracker.OnUninit()
-    end
+    if player then
+        EnterGame(player)
 
-    if sessionState == "IN_GAME" then
         updateTimer = updateTimer + delta
+
         if updateTimer >= 5.0 then
-            updateTimer = 0
+            updateTimer = 0.0
             Tracker.Update()
         end
+    else
+        LeaveGame()
     end
 end)
 
 registerForEvent("onShutdown", function()
-    Tracker.OnUninit()
+    LeaveGame()
+    Logger.Close()
 end)
 
 return {

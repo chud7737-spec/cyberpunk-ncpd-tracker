@@ -14,8 +14,6 @@ function Database.Load()
     local content = file:read("*a")
     file:close()
 
-    -- In a real CET mod, we would use a JSON library like jansson or a lua json parser.
-    -- For simplicity, since we know CET has a built-in json parser via json.decode
     local success, parsed = pcall(json.decode, content)
     if success and type(parsed) == "table" then
         Database.entries = parsed
@@ -29,6 +27,15 @@ end
 
 function Database.GetAll()
     return Database.entries
+end
+
+function Database.GetById(id)
+    for _, entry in ipairs(Database.entries) do
+        if entry.id == id then
+            return entry
+        end
+    end
+    return nil
 end
 
 return Database

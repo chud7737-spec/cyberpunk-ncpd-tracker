@@ -16,61 +16,93 @@ function QuestState.Init()
     end
 end
 
-function QuestState.GetState(entry)
-    if not journalManager then
-        journalManager = Game.GetJournalManager()
-    end
-
-    if not journalManager then return QuestState.STATE_UNKNOWN end
-
-    local journalPath = entry.journal_path
-    if not journalPath then
+local function MapJournalState(state)
+    if state == nil then
         return QuestState.STATE_UNKNOWN
     end
 
-    local success, state = pcall(function()
-        local jEntry = journalManager:GetEntryByString(journalPath, "gameJournalEntry")
-        if not jEntry then return nil end
-        return journalManager:GetEntryState(jEntry)
-    end)
+    if state == gameJournalEntryState.Succeeded then
+        return QuestState.STATE_COMPLETED
+    end
 
-    if success and state ~= nil then
-        if tostring(state) == "Succeeded" or state == 3 then
-            return QuestState.STATE_COMPLETED
-        else
-            return QuestState.STATE_NOT_COMPLETED
-        end
+    if state == gameJournalEntryState.Active then
+        return QuestState.STATE_NOT_COMPLETED
     end
 
     return QuestState.STATE_UNKNOWN
 end
 
--- Probe function for diagnostic purposes
-function QuestState.Probe(id, journalPath)
-    Logger.Info("--- PROBING " .. tostring(id) .. " ---")
+function QuestState.GetState(entry)
+    if not journalManager then
+        journalManager = Game.GetJournalManager()
+    end
+
+    if not journalManager then
+        return QuestState.STATE_UNKNOWN
+    end
+
+    if not entry.journal_path or entry.journal_path == "" then
+        return QuestState.STATE_UNKNOWN
+    end
+
+    local success, result = pcall(function()
+        local journalEntry = journalManager:GetEntryByString(
+            entry.journal_path,
+            entry.journal_class or "gameJournalEntry"
+        )
+
+        if not journalEntry then
+            return nil
+        end
+
+        return journalManager:GetEntryState(journalEntry)
+    end)
+
+    if not success then
+        Logger.Error("Journal state lookup failed for " .. tostring(entry.id) .. ": " .. tostring(result))
+        return QuestState.STATE_UNKNOWN
+    end
+
+    return MapJournalState(result)
+end
+
+function QuestState.Probe(entry)
+    if not entry then
+        Logger.Error("Probe: entry is nil.")
+        return false
+    end
+
+    Logger.Info("--- NCPD PROBE: " .. tostring(entry.id) .. " ---")
+
     if not journalManager then
         journalManager = Game.GetJournalManager()
         if not journalManager then
             Logger.Error("No JournalManager available for probe.")
-            return
+            return false
         end
     end
 
-    Logger.Info("Journal Path: " .. tostring(journalPath))
-
-    if not journalPath then
-        Logger.Info("Result: Cannot probe without journalPath.")
-        return
+    if not entry.journal_path or entry.journal_path == "" then
+        Logger.Info("Journal Path: UNKNOWN")
+        Logger.Info("Probe result: UNKNOWN")
+        return false
     end
 
+    Logger.Info("Journal Path: " .. tostring(entry.journal_path))
+
     local jEntry = nil
-    pcall(function() jEntry = journalManager:GetEntryByString(journalPath, "gameJournalEntry") end)
+    pcall(function()
+        jEntry = journalManager:GetEntryByString(entry.journal_path, entry.journal_class or "gameJournalEntry")
+    end)
 
     if not jEntry then
         Logger.Info("Journal Entry: NOT FOUND")
-        return
+        return false
     end
     Logger.Info("Journal Entry: FOUND")
+
+    local jClass = entry.journal_class or "gameJournalEntry (default)"
+    Logger.Info("Journal Class: " .. jClass)
 
     local jHash = nil
     pcall(function() jHash = journalManager:GetEntryHash(jEntry) end)
@@ -80,17 +112,17 @@ function QuestState.Probe(id, journalPath)
     pcall(function() jState = journalManager:GetEntryState(jEntry) end)
     Logger.Info("Journal State: " .. tostring(jState))
 
+    local mappedState = MapJournalState(jState)
+    Logger.Info("Mapped Completion State: " .. tostring(mappedState))
+
     local mappinSystem = Game.GetMappinSystem()
     if mappinSystem and jHash then
         local poiHash = nil
         pcall(function() poiHash = journalManager:GetPointOfInterestMappinHashFromQuestHash(jHash) end)
         Logger.Info("POI Hash: " .. tostring(poiHash))
-
-        -- Needs in-game test to check if GetPointOfInterestMappinSavedState works this way
-        Logger.Info("Mappin Saved State probe requires exact out parameters which might not bind in CET Lua easily. Skipping deep state probe.")
-    else
-        Logger.Info("MappinSystem not available for POI hash check.")
     end
+
+    return true
 end
 
 return QuestState

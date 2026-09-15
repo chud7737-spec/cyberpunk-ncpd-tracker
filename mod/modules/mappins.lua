@@ -14,32 +14,54 @@ function Mappins.Init()
     end
 end
 
-function Mappins.EnsureMappin(entry)
+local function CreateGenericMappin(position)
     if not mappinSystem then
         mappinSystem = Game.GetMappinSystem()
-        if not mappinSystem then return end
     end
 
-    if Mappins.registered[entry.id] then return end
+    if not mappinSystem or not position then
+        return nil
+    end
 
-    if not entry.position or entry.position.x == nil then
+    local success, result = pcall(function()
+        local data = MappinData.new()
+
+        data.mappinType = TweakDBID.new("Mappins.QuestStaticMappinDefinition")
+        data.variant = gamedataMappinVariant.DefaultQuestVariant
+        data.active = true
+
+        return mappinSystem:RegisterMappin(data, position)
+    end)
+
+    if not success then
+        Logger.Error("RegisterMappin failed: " .. tostring(result))
+        return nil
+    end
+
+    return result
+end
+
+function Mappins.EnsureMappin(entry)
+    if Mappins.registered[entry.id] then
         return
     end
 
-    local pos = Vector4.new(entry.position.x, entry.position.y, entry.position.z, 1.0)
+    if not entry.position then
+        return
+    end
 
-    local success, mappinId = pcall(function()
-        local mappinData = gamemappinsMappinData.new()
-        mappinData.mappinType = TweakDBID.new("Mappins.PointOfInterest_icon")
-        mappinData.variant = gamedataMappinVariant.UndiscoveredVariant
-        mappinData.visibleThroughWalls = false
-        mappinData.active = true
+    local pos = Vector4.new(
+        entry.position.x,
+        entry.position.y,
+        entry.position.z,
+        1.0
+    )
 
-        return mappinSystem:RegisterMappin(mappinData, pos)
-    end)
+    local id = CreateGenericMappin(pos)
 
-    if success and mappinId then
-        Mappins.registered[entry.id] = mappinId
+    if id then
+        Mappins.registered[entry.id] = id
+        Logger.Debug("Marker created: " .. tostring(entry.id))
     end
 end
 
@@ -52,6 +74,7 @@ function Mappins.RemoveMappin(entryId)
             mappinSystem:UnregisterMappin(mappinId)
         end)
         Mappins.registered[entryId] = nil
+        Logger.Debug("Marker removed: " .. entryId)
     end
 end
 
@@ -65,42 +88,84 @@ function Mappins.RemoveAll()
 end
 
 function Mappins.CreateTestMappin()
-    if not mappinSystem then mappinSystem = Game.GetMappinSystem() end
-    if not mappinSystem then return end
+    Mappins.RemoveTestMappin()
+
+    if not mappinSystem then
+        mappinSystem = Game.GetMappinSystem()
+    end
+
+    if not mappinSystem then
+        Logger.Error("Cannot create test marker: MappinSystem unavailable.")
+        return false
+    end
 
     local player = Game.GetPlayer()
-    if not player then return end
-
-    local pos = player:GetWorldPosition()
-    -- Offset slightly so it's visible
-    pos.x = pos.x + 2.0
-
-    local success, mappinId = pcall(function()
-        local mappinData = gamemappinsMappinData.new()
-        mappinData.mappinType = TweakDBID.new("Mappins.PointOfInterest_icon")
-        mappinData.variant = gamedataMappinVariant.UndiscoveredVariant
-        mappinData.visibleThroughWalls = true
-        mappinData.active = true
-
-        return mappinSystem:RegisterMappin(mappinData, pos)
-    end)
-
-    if success and mappinId then
-        testMappinId = mappinId
-        Logger.Info("Test marker created near player.")
-    else
-        Logger.Error("Failed to create test marker.")
+    if not player then
+        Logger.Error("Cannot create test marker: player unavailable.")
+        return false
     end
+
+    local playerPos = player:GetWorldPosition()
+    if not playerPos then
+        Logger.Error("Cannot create test marker: player position unavailable.")
+        return false
+    end
+
+    local pw = 1.0
+    if playerPos.w then
+        pw = playerPos.w
+    end
+
+    local markerPos = Vector4.new(
+        playerPos.x + 3.0,
+        playerPos.y,
+        playerPos.z,
+        pw
+    )
+
+    local id = CreateGenericMappin(markerPos)
+
+    if not id then
+        Logger.Error("Test marker creation failed.")
+        return false
+    end
+
+    testMappinId = id
+
+    Logger.Info(
+        "Test marker created. Position: "
+        .. tostring(markerPos.x) .. ", "
+        .. tostring(markerPos.y) .. ", "
+        .. tostring(markerPos.z)
+    )
+
+    return true
 end
 
 function Mappins.RemoveTestMappin()
-    if testMappinId and mappinSystem then
-        pcall(function()
-            mappinSystem:UnregisterMappin(testMappinId)
-        end)
-        testMappinId = nil
-        Logger.Info("Test marker removed.")
+    if not testMappinId then
+        return true
     end
+
+    if not mappinSystem then
+        Logger.Error("Cannot remove test marker: MappinSystem unavailable.")
+        return false
+    end
+
+    local id = testMappinId
+
+    local success, err = pcall(function()
+        mappinSystem:UnregisterMappin(id)
+    end)
+
+    if not success then
+        Logger.Error("Failed to remove test marker: " .. tostring(err))
+        return false
+    end
+
+    testMappinId = nil
+    Logger.Info("Test marker removed.")
+    return true
 end
 
 return Mappins

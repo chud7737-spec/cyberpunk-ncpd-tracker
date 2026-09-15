@@ -2,9 +2,11 @@ local Logger = require("modules/logger")
 local Tracker = require("modules/tracker")
 local QuestState = require("modules/quest_state")
 local Mappins = require("modules/mappins")
+local Database = require("modules/database")
 
 local UI = {}
 UI.isOpen = false
+local testMarkerStatus = "NONE"
 
 function UI.Init()
     registerForEvent("onDraw", function()
@@ -35,28 +37,41 @@ function UI.Draw()
     ImGui.Text("Неизвестно: " .. tostring(Tracker.stats.unknown))
 
     ImGui.Separator()
-    ImGui.Text("Показать:")
-
-    Tracker.filters.assault = ImGui.Checkbox("Нападения", Tracker.filters.assault)
-    Tracker.filters.organized = ImGui.Checkbox("Организованная преступность", Tracker.filters.organized)
-    Tracker.filters.reported = ImGui.Checkbox("Заявленные преступления", Tracker.filters.reported)
-
-    ImGui.Separator()
-    if ImGui.Button("Обновить метки") then
+    if ImGui.Button("Обновить состояние") then
         Tracker.Update()
     end
 
     ImGui.Separator()
     ImGui.Text("NCPD DEBUG")
+
     if ImGui.Button("Тестовая метка возле игрока") then
-        Mappins.CreateTestMappin()
+        local success = Mappins.CreateTestMappin()
+        if success then
+            testMarkerStatus = "CREATED"
+        else
+            testMarkerStatus = "ERROR"
+        end
     end
+
     if ImGui.Button("Удалить тестовую метку") then
-        Mappins.RemoveTestMappin()
+        local success = Mappins.RemoveTestMappin()
+        if success then
+            testMarkerStatus = "REMOVED"
+        else
+            testMarkerStatus = "ERROR"
+        end
     end
-    if ImGui.Button("Проверить Journal (ma_wat_kab_05)") then
-        -- This requires exact journal path to work. Passing nil to show the probe failing gracefully.
-        QuestState.Probe("ma_wat_kab_05", nil)
+
+    ImGui.Text("Test marker status: " .. testMarkerStatus)
+    ImGui.Separator()
+
+    local entry = Database.GetById("ma_wat_kab_05")
+    if entry and entry.journal_path and entry.journal_path ~= "" then
+        if ImGui.Button("Проверить Journal (ma_wat_kab_05)") then
+            QuestState.Probe(entry)
+        end
+    else
+        ImGui.Text("Journal probe unavailable: verified journal path not found.")
     end
 
     ImGui.End()
