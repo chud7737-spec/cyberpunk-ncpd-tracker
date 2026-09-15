@@ -1,0 +1,73 @@
+[
+    {
+        "id": "ma_wat_kab_05",
+        "type": "reported_crime",
+        "name_en": "Reported Crime: Protect and Serve",
+        "name_ru": null,
+        "district": "Watson",
+        "subdistrict": "Kabuki",
+        "resource_path": null,
+        "position": null,
+        "verified": true,
+        "sources": [
+            "CDPR Quest IDs reference (https://wiki.redmodding.org/cyberpunk-2077-modding/for-mod-creators-theory/references-lists-and-overviews/reference-quest-ids)",
+            "cp2077-tracker catalog (https://github.com/defessler/cp2077-tracker/blob/master/cp2077/cp2077_catalog.py)"
+        ]
+    },
+    {
+        "id": "ma_wat_kab_10",
+        "type": "reported_crime",
+        "name_en": "Reported Crime: Watson Kabuki",
+        "name_ru": null,
+        "district": "Watson",
+        "subdistrict": "Kabuki",
+        "resource_path": null,
+        "position": null,
+        "verified": true,
+        "sources": [
+            "cp2077-tracker catalog (https://github.com/defessler/cp2077-tracker/blob/master/cp2077/cp2077_catalog.py)"
+        ]
+    },
+    {
+        "id": "ma_wat_lch_01",
+        "type": "suspected_organized_crime",
+        "name_en": "Opposites Attract",
+        "name_ru": null,
+        "district": "Watson",
+        "subdistrict": "Little China",
+        "resource_path": null,
+        "position": null,
+        "verified": true,
+        "sources": [
+            "cp2077-tracker catalog (https://github.com/defessler/cp2077-tracker/blob/master/cp2077/cp2077_catalog.py)"
+        ]
+    },
+    {
+        "id": "ma_wat_lch_03",
+        "type": "reported_crime",
+        "name_en": "Worldly Possessions",
+        "name_ru": null,
+        "district": "Watson",
+        "subdistrict": "Little China",
+        "resource_path": null,
+        "position": null,
+        "verified": true,
+        "sources": [
+            "cp2077-tracker catalog (https://github.com/defessler/cp2077-tracker/blob/master/cp2077/cp2077_catalog.py)"
+        ]
+    },
+    {
+        "id": "ma_wat_nid_01",
+        "type": "suspected_organized_crime",
+        "name_en": "Vice Control",
+        "name_ru": null,
+        "district": "Watson",
+        "subdistrict": "Northside",
+        "resource_path": null,
+        "position": null,
+        "verified": true,
+        "sources": [
+            "cp2077-tracker catalog (https://github.com/defessler/cp2077-tracker/blob/master/cp2077/cp2077_catalog.py)"
+        ]
+    }
+]
